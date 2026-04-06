@@ -10,9 +10,9 @@
 </tr>
 {% for session in sessions %}
 <tr>
-    <td>{{ s[1] }}</td>
-    <td>{{ s[2] }}</td>
-    <td><a href="{{ url_for('delete_session', session_id=s[0]) }}">Delete</a></td>
+    <td>{{ session[1] }}</td>
+    <td>{{ session[2] }}</td>
+    <td><a href="/sessions/{{ session[0] }}">Delete</a></td>
 </tr>
 {% endfor %}
 </table>

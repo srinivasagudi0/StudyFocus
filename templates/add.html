@@ -3,6 +3,12 @@
 <h2>Add Study Session</h2>
 
 <form method="POST">
-    <input name="subject" placeholder="Subject" required>
-    <input name="duration", type = "number", placeholder="duration" required>
-    <button>Submit</button>
+    <label for="subject">Subject</label>
+    <input id="subject" name="subject" placeholder="Subject" required>
+
+    <label for="duration">Duration</label>
+    <input id="duration" name="duration" type="number" placeholder="Duration" required>
+
+    <button type="submit">Submit</button>
+</form>
+{% endblock %}
