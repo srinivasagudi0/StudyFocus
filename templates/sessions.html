@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Your Sessions</h2>
+
+<table>
+<tr>
+    <th>Subject</th>
+    <th>Duration</th>
+    <th>Action</th>
+</tr>
+{% for session in sessions %}
+<tr>
+    <td>{{ s[1] }}</td>
+    <td>{{ s[2] }}</td>
+    <td><a href="{{ url_for('delete_session', session_id=s[0]) }}">Delete</a></td>
+</tr>
+{% endfor %}
+</table>
+{% endblock %}
