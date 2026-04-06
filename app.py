@@ -21,11 +21,21 @@ def init_db():
 
 init_db()
 
+def get_quote():
+    fallback_quote = "Keep going — small progress every day adds up."
+    try:
+        response = requests.get("https://api.quotable.io/random", timeout=3)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("content", fallback_quote)
+    except (requests.RequestException, ValueError, KeyError):
+        return fallback_quote
+
 # Route 1: Home page with random quote
 @app.route('/')
 def index():
-    quote = requests.get("https://api.quotable.io/random").json()
-    return render_template("index.html", quote=quote["content"])
+    quote = get_quote()
+    return render_template("index.html", quote=quote)
 
 # Route 2: Add a new study session
 @app.route("/add", methods=["GET", "POST"])
