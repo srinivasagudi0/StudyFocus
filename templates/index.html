@@ -10,9 +10,30 @@
 
 <div class="feature-section">
     <div class="card feature-card">
-        <div class="feature-badge">Coming Soon</div>
+        <div class="feature-badge">AI Feature</div>
         <h3>Get Insights</h3>
         <p>Analyze your study patterns and discover what works best for you.</p>
+        <p class="feature-meta">
+            {{ session_summary.session_count }} sessions logged,
+            {{ session_summary.total_minutes }} total minutes studied.
+        </p>
+        <form method="POST" action="{{ url_for('insights') }}">
+            <button type="submit">Generate Insights</button>
+        </form>
     </div>
 </div>
+
+{% if insights %}
+<div class="card">
+    <h3>Study Insights</h3>
+    <div class="insights-output">{{ insights }}</div>
+</div>
+{% endif %}
+
+{% if insights_error %}
+<div class="card error-card">
+    <h3>Insights Unavailable</h3>
+    <p>{{ insights_error }}</p>
+</div>
+{% endif %}
 {% endblock %}

@@ -47,9 +47,23 @@ nav a {
     text-transform: uppercase;
 }
 
+.feature-meta {
+    color: #cbd5e1;
+}
+
+.insights-output {
+    white-space: pre-wrap;
+    line-height: 1.6;
+}
+
+.error-card {
+    border: 1px solid #7f1d1d;
+}
+
 button {
     background: #38bdf8;
     border: none;
     padding: 10px;
     cursor: pointer;
+    border-radius: 6px;
 }
