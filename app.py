@@ -3,6 +3,7 @@ from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session
 import requests
 from authentication import create_user_table, check_user, add_user
+import random
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key_here"
@@ -35,7 +36,10 @@ def login_required(view):
     return wrapped_view
 
 def get_quote():
-    fallback_quote = "Keep going — small progress every day adds up."
+    with open("quotes.txt", "r") as f:
+        quotes = f.read().splitlines()
+        fallback_quote = random.choice(quotes)
+
     try:
         response = requests.get("https://api.quotable.io/random", timeout=3)
         response.raise_for_status()

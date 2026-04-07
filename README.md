@@ -12,7 +12,7 @@ StudyFocus is a simple yet powerful app designed to help you track your study se
 
 📊 **Get Insights** - Analyze your study patterns and discover what works best for you (Will implement in the future)
 
-💪 **Stay Motivated** - Daily inspirational quotes to keep you focused and driven (Working on this feature)
+💪 **Stay Motivated** - Daily inspirational quotes to keep you focused and driven 
 
 🔐 **Your Data, Secure** - All your information stays on your device in a local database
 
