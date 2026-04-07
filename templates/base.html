@@ -7,9 +7,22 @@
 
 <body>
     <nav>
-        <a href="/">Home</a>
-        <a href="/add">Add</a>
-        <a href="/sessions">Sessions</a>
+        <div class="nav-left">
+            {% if session.get('username') %}
+                <a href="/">Home</a>
+                <a href="/add">Add</a>
+                <a href="/sessions">Sessions</a>
+            {% endif %}
+        </div>
+        <div class="nav-right">
+            {% if session.get('username') %}
+                <span>Welcome, {{ session['username'] }}!</span>
+                <a href="/logout">Logout</a>
+            {% else %}
+                <a href="/login">Login</a>
+                <a href="/signup">Sign Up</a>
+            {% endif %}
+        </div>
     </nav>
     <div class="container">
         {% block content %}{% endblock %}

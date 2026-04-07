@@ -2,7 +2,7 @@ import sqlite3
 
 def check_user(username, password):
     # Connect to the SQLite database
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
 
     # Query the database for the user
@@ -20,7 +20,7 @@ def check_user(username, password):
 
 def add_user(username, password):
     # Connect to the SQLite database
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
 
     # Create the users table if it doesn't exist
@@ -37,15 +37,18 @@ def add_user(username, password):
         cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
         conn.commit()
         print("User added successfully.")
+        return True
     except sqlite3.IntegrityError:
         print("Username already exists.")
-
-    # Close the database connection
-    conn.close()
+        conn.close()
+        raise Exception("Username already exists")
+    finally:
+        # Close the database connection
+        conn.close()
 
 def create_user_table():
     # Initialize the database and create the users table if it doesn't exist
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (

@@ -1,10 +1,12 @@
 import sqlite3
-from flask import Flask, render_template, request, redirect, url_for
+from functools import wraps
+from flask import Flask, render_template, request, redirect, url_for, session
 import requests
-from authentication impor *
+from authentication import create_user_table, check_user, add_user
 
 app = Flask(__name__)
-db = "database.db"  # Path to SQLite database
+app.secret_key = "your_secret_key_here"
+db = "database.db"
 
 def init_db():
     conn = sqlite3.connect(db)
@@ -20,6 +22,17 @@ def init_db():
     conn.close()
 
 init_db()
+create_user_table()
+
+
+def login_required(view):
+    @wraps(view)
+    def wrapped_view(*args, **kwargs):
+        if not session.get("username"):
+            return redirect(url_for("login"))
+        return view(*args, **kwargs)
+
+    return wrapped_view
 
 def get_quote():
     fallback_quote = "Keep going — small progress every day adds up."
@@ -31,43 +44,68 @@ def get_quote():
     except (requests.RequestException, ValueError, KeyError):
         return fallback_quote
 
-# Route 1: Home page with random quote
+@app.route('/login', methods=["GET", "POST"])
+def login():
+    created = request.args.get("created") == "1"
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+        if check_user(username, password):
+            session['username'] = username
+            return redirect(url_for("index"))
+        else:
+            return render_template("login.html", error="Invalid username or password", created=created)
+    return render_template("login.html", created=created)
+
+@app.route('/signup', methods=["GET", "POST"])
+def signup():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+        try:
+            add_user(username, password)
+            return redirect(url_for("login", created=1))
+        except Exception as e:
+            return render_template("signup.html", error="Username already exists or error occurred")
+    return render_template("signup.html")
+
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect(url_for("login"))
+
 @app.route('/')
+@login_required
 def index():
     quote = get_quote()
     return render_template("index.html", quote=quote)
 
-# Route 2: Add a new study session
 @app.route("/add", methods=["GET", "POST"])
-
+@login_required
 def add():
     if request.method == "POST":
         subject = request.form["subject"]
         duration = request.form["duration"]
-
         conn = sqlite3.connect(db)
         cursor = conn.cursor()
         cursor.execute("INSERT INTO sessions (subject, duration) VALUES (?, ?)", (subject, duration))
         conn.commit()
         conn.close()
-
         return redirect(url_for("sessions"))
-
     return render_template("add.html")
 
-# Route 3: View all study sessions
 @app.route("/sessions")
-
+@login_required
 def sessions():
     conn = sqlite3.connect(db)
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM sessions")
-    sessions = cursor.fetchall()
+    sessions_data = cursor.fetchall()
     conn.close()
-    return render_template("sessions.html", sessions=sessions)
+    return render_template("sessions.html", sessions=sessions_data)
 
-# Route 4: Delete a study session
 @app.route("/sessions/<int:id>")
+@login_required
 def delete(id):
     conn = sqlite3.connect(db)
     cursor = conn.cursor()
