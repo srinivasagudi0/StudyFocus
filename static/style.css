@@ -1,12 +1,15 @@
 body {
+    /* simple dark theme for the whole app */
     font-family: sans-serif;
     background: #0f172a;
     color: white;
+    margin: 0;
 }
 
 nav {
+    /* top menu bar */
     background: #1e293b;
-    padding: 10px;
+    padding: 10px 12px;
 }
 
 nav a {
@@ -16,10 +19,12 @@ nav a {
 }
 
 .container {
+    /* main page spacing */
     padding: 20px;
 }
 
 .card {
+    /* reused box style for quote + ai section */
     background: #1e293b;
     padding: 15px;
     border-radius: 10px;
@@ -27,7 +32,8 @@ nav a {
 }
 
 .feature-section {
-    margin-top: 24px;
+    /* little gap before the AI part */
+    margin-top: 24px; /* felt too close without this */
 }
 
 .feature-card {
@@ -52,6 +58,7 @@ nav a {
 }
 
 .insights-output {
+    /* keeps the AI bullet lines looking like they came back */
     white-space: pre-wrap;
     line-height: 1.6;
 }
@@ -61,6 +68,7 @@ nav a {
 }
 
 button {
+    /* buttons are all the same for now */
     background: #38bdf8;
     border: none;
     padding: 10px;

@@ -1,18 +1,24 @@
+import random
 import sqlite3
 import os
 from functools import wraps
-from flask import Flask, render_template, request, redirect, url_for, session
-import requests
-from authentication import create_user_table, check_user, add_user
-import random
 
+import requests
+from flask import Flask, render_template, request, redirect, url_for, session
+
+from authentication import create_user_table, check_user, add_user
+
+
+DATABASE = "database.db"
 app = Flask(__name__)
 app.secret_key = "your_secret_key_here"
-db = "database.db"
+
 
 def init_db():
-    conn = sqlite3.connect(db)
+    # Make the sessions table if it is not already there.
+    conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
+
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS sessions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,18 +27,24 @@ def init_db():
             duration INTEGER
         )
     ''')
+
+    # This keeps old database files working if they were made before login existed.
     cursor.execute("PRAGMA table_info(sessions)")
     columns = [column[1] for column in cursor.fetchall()]
+
     if "username" not in columns:
         cursor.execute("ALTER TABLE sessions ADD COLUMN username TEXT")
+
     conn.commit()
     conn.close()
 
+
 init_db()
-create_user_table()
+create_user_table()  # users table needs to exist before people login/signup
 
 
 def login_required(view):
+    # Used on pages that should only show after login.
     @wraps(view)
     def wrapped_view(*args, **kwargs):
         if not session.get("username"):
@@ -40,7 +52,10 @@ def login_required(view):
         return view(*args, **kwargs)
 
     return wrapped_view
+
+
 def get_quote():
+    # Use the local file as a backup if the quote website does not respond.
     with open("quotes.txt", "r") as f:
         quotes = f.read().splitlines()
         fallback_quote = random.choice(quotes)
@@ -55,14 +70,17 @@ def get_quote():
 
 
 def fetch_user_sessions(username):
-    conn = sqlite3.connect(db)
+    conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
+
     cursor.execute(
         "SELECT id, subject, duration FROM sessions WHERE username = ? ORDER BY id DESC",
         (username,),
     )
+
     sessions_data = cursor.fetchall()
     conn.close()
+
     return sessions_data
 
 
@@ -108,6 +126,7 @@ def get_study_insights(username):
     session_summary = build_session_summary(sessions_data)
     model = os.getenv("OPENAI_INSIGHTS_MODEL", "gpt-3.5-turbo")
 
+    # Keep this short so it fits nicely on the home page.
     prompt = f"""
 You are analyzing a student's study log.
 Return exactly 3 short bullet points.
@@ -122,7 +141,7 @@ Study summary:
         response = requests.post(
             "https://api.openai.com/v1/chat/completions",
             headers={
-                "Authorization": f"Bearer {api_key}",
+                "Authorization": "Bearer " + api_key,
                 "Content-Type": "application/json",
             },
             json={
@@ -149,42 +168,60 @@ Study summary:
     except (requests.RequestException, KeyError, IndexError, ValueError):
         return None, "Could not generate insights right now."
 
+
 @app.route('/login', methods=["GET", "POST"])
 def login():
     created = request.args.get("created") == "1"
+
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
+
         if check_user(username, password):
             session['username'] = username
             return redirect(url_for("index"))
-        else:
-            return render_template("login.html", error="Invalid username or password", created=created)
+
+        return render_template(
+            "login.html",
+            error="Invalid username or password",
+            created=created,
+        )
+
     return render_template("login.html", created=created)
+
 
 @app.route('/signup', methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
+
         try:
             add_user(username, password)
             return redirect(url_for("login", created=1))
-        except Exception as e:
-            return render_template("signup.html", error="Username already exists or error occurred")
+        except Exception:
+            return render_template(
+                "signup.html",
+                error="Username already exists or error occurred",
+            )
+
     return render_template("signup.html")
+
 
 @app.route('/logout')
 def logout():
     session.pop('username', None)
     return redirect(url_for("login"))
 
+
 @app.route('/')
 @login_required
 def index():
     quote = get_quote()
-    sessions_data = fetch_user_sessions(session["username"])
+    current_user = session["username"]
+    sessions_data = fetch_user_sessions(current_user)
     session_summary = build_session_summary(sessions_data)
+
     return render_template("index.html", quote=quote, session_summary=session_summary)
 
 
@@ -192,9 +229,11 @@ def index():
 @login_required
 def insights():
     quote = get_quote()
-    sessions_data = fetch_user_sessions(session["username"])
+    username = session["username"]
+    sessions_data = fetch_user_sessions(username)
     session_summary = build_session_summary(sessions_data)
-    insights_text, insights_error = get_study_insights(session["username"])
+    insights_text, insights_error = get_study_insights(username)
+
     return render_template(
         "index.html",
         quote=quote,
@@ -203,22 +242,29 @@ def insights():
         session_summary=session_summary,
     )
 
+
 @app.route("/add", methods=["GET", "POST"])
 @login_required
 def add():
     if request.method == "POST":
         subject = request.form["subject"]
         duration = request.form["duration"]
-        conn = sqlite3.connect(db)
+
+        conn = sqlite3.connect(DATABASE)
         cursor = conn.cursor()
+
         cursor.execute(
             "INSERT INTO sessions (username, subject, duration) VALUES (?, ?, ?)",
             (session["username"], subject, duration),
         )
+
         conn.commit()
         conn.close()
+
         return redirect(url_for("sessions"))
+
     return render_template("add.html")
+
 
 @app.route("/sessions")
 @login_required
@@ -226,18 +272,24 @@ def sessions():
     sessions_data = fetch_user_sessions(session["username"])
     return render_template("sessions.html", sessions=sessions_data)
 
+
 @app.route("/sessions/<int:id>")
 @login_required
 def delete(id):
-    conn = sqlite3.connect(db)
+    # Username is checked here so users can only delete their own sessions.
+    conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
+
     cursor.execute(
         "DELETE FROM sessions WHERE id = ? AND username = ?",
         (id, session["username"]),
     )
+
     conn.commit()
     conn.close()
+
     return redirect(url_for("sessions"))
+
 
 if __name__ == '__main__':
     app.run(debug=True)

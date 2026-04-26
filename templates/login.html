@@ -3,17 +3,22 @@
 {% block content %}
 <div class="login-container">
     <h2>Login</h2>
+
+    {# message after signing up #}
     {% if created %}
         <div class="success-message">Account created. Login to continue.</div>
     {% endif %}
+
     {% if error %}
         <div class="error-message">{{ error }}</div>
     {% endif %}
+
     <form method="POST">
         <input name="username" placeholder="Username" required>
         <input name="password" placeholder="Password" type="password" required>
         <button type="submit">Login</button>
     </form>
+
     <p>Don't have an account? <a href="{{ url_for('signup') }}">Sign up here</a></p>
 </div>
 {% endblock %}

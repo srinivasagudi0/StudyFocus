@@ -1,19 +1,21 @@
 {% extends "base.html" %}
+
 {% block content %}
 <h2>Your Sessions</h2>
 
+{# showing all sessions for the current user #}
 <table>
-<tr>
-    <th>Subject</th>
-    <th>Duration</th>
-    <th>Action</th>
-</tr>
-{% for session in sessions %}
-<tr>
-    <td>{{ session[1] }}</td>
-    <td>{{ session[2] }}</td>
-    <td><a href="/sessions/{{ session[0] }}">Delete</a></td>
-</tr>
-{% endfor %}
+    <tr>
+        <th>Subject</th>
+        <th>Duration</th>
+        <th>Action</th>
+    </tr>
+    {% for session in sessions %}
+    <tr>
+        <td>{{ session[1] }}</td>
+            <td>{{ session[2] }}</td>
+        <td><a href="/sessions/{{ session[0] }}">Delete</a></td>
+    </tr>
+    {% endfor %}
 </table>
 {% endblock %}

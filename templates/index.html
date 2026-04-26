@@ -1,22 +1,28 @@
 {% extends "base.html" %}
+
 {% block content %}
 <h1>FocusForge</h1>
 <p>Stay consistent. Stay sharp. Stay focused.</p>
 
+{# random quote area #}
 <div class="card">
-    <h3> Motivation </h3>
-    <p>{{quote}}</p>
+    <h3> Motivation </h3> {# spacing is weird but it looks okay #}
+    <p>{{ quote }}</p>
 </div>
 
+{# this is the main AI feature section #}
 <div class="feature-section">
     <div class="card feature-card">
         <div class="feature-badge">AI Feature</div>
+
         <h3>Get Insights</h3>
         <p>Analyze your study patterns and discover what works best for you.</p>
+
         <p class="feature-meta">
             {{ session_summary.session_count }} sessions logged,
             {{ session_summary.total_minutes }} total minutes studied.
         </p>
+
         <form method="POST" action="{{ url_for('insights') }}">
             <button type="submit">Generate Insights</button>
         </form>
@@ -24,6 +30,7 @@
 </div>
 
 {% if insights %}
+{# only shows after the user clicks generate #}
 <div class="card">
     <h3>Study Insights</h3>
     <div class="insights-output">{{ insights }}</div>
@@ -31,6 +38,7 @@
 {% endif %}
 
 {% if insights_error %}
+{# shows if the API key is missing or the request fails #}
 <div class="card error-card">
     <h3>Insights Unavailable</h3>
     <p>{{ insights_error }}</p>
